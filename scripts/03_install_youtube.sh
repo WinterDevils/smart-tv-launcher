@@ -98,16 +98,16 @@ install_youtube_launchers() {
             set +e  # Temporarily disable exit on error
             install_desktop_file "$source_file"
             local install_result=$?
-            set -e  # Re-enable exit on error
             log_info "install_desktop_file returned: ${install_result}"
             
             if [[ $install_result -eq 0 ]]; then
-                ((installed_count++))
+                installed_count=$((installed_count + 1))
                 log_success "Successfully processed ${filename} (count: ${installed_count})"
             else
                 log_error "Failed to install ${filename} (exit code: ${install_result})"
                 all_found=false
             fi
+            set -e  # Re-enable exit on error
         else
             log_error "${filename} not found at ${source_file}"
             all_found=false
