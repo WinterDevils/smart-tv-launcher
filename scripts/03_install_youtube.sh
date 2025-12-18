@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 #
-# install_apps.sh - Install Smart TV application launchers
+# 03_install_youtube.sh - Install YouTube TV and YouTube Kids launchers
 #
-# This script installs .desktop files and application configurations
-# from the files/ directory into the appropriate system locations.
+# This script installs YouTube application launchers.
 #
-# Usage: ./scripts/install_apps.sh
+# Usage: ./scripts/03_install_youtube.sh
 #
 # Note: This script is idempotent and safe to re-run.
 
@@ -33,20 +32,6 @@ ensure_directories() {
     log_success "Directories ready"
 }
 
-# Backup existing file
-backup_file() {
-    local file="$1"
-    
-    if [[ -f "$file" ]]; then
-        local backup="${file}.bak"
-        local timestamp=$(date +%Y%m%d_%H%M%S)
-        backup="${file}.${timestamp}.bak"
-        
-        log_info "Backing up existing file to: $backup"
-        cp "$file" "$backup"
-    fi
-}
-
 # Install a single .desktop file
 install_desktop_file() {
     local source_file="$1"
@@ -56,38 +41,36 @@ install_desktop_file() {
     
     log_info "Installing ${filename}..."
     
-    # Backup if exists
-    if [[ -f "$target_file" ]]; then
-        backup_file "$target_file"
-    fi
-    
-    # Copy the file
+    # Copy the file (overwrite if exists)
     cp "$source_file" "$target_file"
     chmod 644 "$target_file"
     
     log_success "Installed ${filename}"
 }
 
-# Install all .desktop files
-install_desktop_files() {
-    log_info "Looking for .desktop files in ${FILES_DIR}..."
+# Install YouTube launchers
+install_youtube_launchers() {
+    log_info "Looking for YouTube launchers in ${FILES_DIR}..."
     
-    local desktop_files=("${FILES_DIR}"/*.desktop)
+    local installed_count=0
+    local youtube_files=("youtube-tv.desktop" "youtube-kids.desktop")
     
-    if [[ ! -e "${desktop_files[0]}" ]]; then
-        log_warning "No .desktop files found in ${FILES_DIR}"
-        return 0
-    fi
-    
-    local count=0
-    for desktop_file in "${desktop_files[@]}"; do
-        if [[ -f "$desktop_file" ]]; then
-            install_desktop_file "$desktop_file"
-            ((count++))
+    for filename in "${youtube_files[@]}"; do
+        local source_file="${FILES_DIR}/${filename}"
+        if [[ -f "$source_file" ]]; then
+            install_desktop_file "$source_file"
+            ((installed_count++))
+        else
+            log_warning "${filename} not found, skipping"
         fi
     done
     
-    log_success "Installed ${count} .desktop file(s)"
+    if [[ $installed_count -eq 0 ]]; then
+        log_error "No YouTube launchers found in ${FILES_DIR}"
+        return 1
+    fi
+    
+    log_success "Installed ${installed_count} YouTube launcher(s)"
 }
 
 # Update desktop database
@@ -121,25 +104,26 @@ verify_chromium() {
 print_summary() {
     echo ""
     echo "=================================================="
-    log_success "Application installation completed!"
+    log_success "YouTube launchers installed!"
     echo "=================================================="
     echo ""
     log_info "Installed applications:"
     log_info "  - YouTube TV (Smart TV interface)"
+    log_info "  - YouTube Kids (if available)"
     echo ""
     log_info "Applications are available in:"
     log_info "  - Application menu (under 'AudioVideo')"
     log_info "  - ~/.local/share/applications/"
     echo ""
-    log_info "To launch YouTube TV:"
-    log_info "  - From GUI: Find 'YouTube TV' in your application menu"
+    log_info "To launch:"
+    log_info "  - From GUI: Find apps in your application menu"
     log_info "  - From terminal: gtk-launch youtube-tv.desktop"
     echo ""
 }
 
 # Main execution
 main() {
-    log_info "Starting Smart TV application installation..."
+    log_info "Starting YouTube launcher installation..."
     log_info "Repository root: ${REPO_ROOT}"
     log_info "Files directory: ${FILES_DIR}"
     log_info "User home: ${USER_HOME}"
@@ -147,13 +131,13 @@ main() {
     
     # Verify prerequisites
     if ! verify_chromium; then
-        log_error "Prerequisites not met. Run bootstrap_pi.sh first."
+        log_error "Prerequisites not met. Run 01_bootstrap_pi.sh first."
         exit 1
     fi
     
-    # Install applications
+    # Install YouTube launchers
     ensure_directories
-    install_desktop_files
+    install_youtube_launchers
     update_desktop_database
     
     print_summary
