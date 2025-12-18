@@ -54,6 +54,7 @@ install_youtube_launchers() {
     
     local installed_count=0
     local youtube_files=("youtube-tv.desktop" "youtube-kids.desktop")
+    local all_found=true
     
     for filename in "${youtube_files[@]}"; do
         local source_file="${FILES_DIR}/${filename}"
@@ -61,12 +62,13 @@ install_youtube_launchers() {
             install_desktop_file "$source_file"
             ((installed_count++))
         else
-            log_warning "${filename} not found, skipping"
+            log_error "${filename} not found in ${FILES_DIR}"
+            all_found=false
         fi
     done
     
-    if [[ $installed_count -eq 0 ]]; then
-        log_error "No YouTube launchers found in ${FILES_DIR}"
+    if [[ "$all_found" == false ]]; then
+        log_error "Missing required YouTube launcher files"
         return 1
     fi
     
@@ -109,7 +111,7 @@ print_summary() {
     echo ""
     log_info "Installed applications:"
     log_info "  - YouTube TV (Smart TV interface)"
-    log_info "  - YouTube Kids (if available)"
+    log_info "  - YouTube Kids"
     echo ""
     log_info "Applications are available in:"
     log_info "  - Application menu (under 'AudioVideo')"
