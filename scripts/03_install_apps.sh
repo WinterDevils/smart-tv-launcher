@@ -11,35 +11,14 @@
 
 set -euo pipefail
 
+# Source common functions
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+
 # Get the repository root directory
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(get_repo_root)"
 FILES_DIR="${REPO_ROOT}/files/desktop"
 USER_HOME="${HOME}"
 TARGET_USER="${USER:-pi}"
-
-# Color codes for output
-readonly RED='\033[0;31m'
-readonly GREEN='\033[0;32m'
-readonly YELLOW='\033[1;33m'
-readonly BLUE='\033[0;34m'
-readonly NC='\033[0m' # No Color
-
-# Logging functions
-log_info() {
-    echo -e "${BLUE}[INFO]${NC} $*"
-}
-
-log_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $*"
-}
-
-log_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $*"
-}
-
-log_error() {
-    echo -e "${RED}[ERROR]${NC} $*"
-}
 
 # Ensure directories exist
 ensure_directories() {
@@ -115,7 +94,7 @@ install_desktop_files() {
 update_desktop_database() {
     log_info "Updating desktop database..."
     
-    if command -v update-desktop-database &> /dev/null; then
+    if command_exists update-desktop-database; then
         local local_apps_dir="${USER_HOME}/.local/share/applications"
         update-desktop-database "$local_apps_dir" 2>/dev/null || true
         log_success "Desktop database updated"
@@ -128,7 +107,7 @@ update_desktop_database() {
 verify_chromium() {
     log_info "Verifying Chromium installation..."
     
-    if command -v chromium &> /dev/null; then
+    if command_exists chromium; then
         local version=$(chromium --version 2>/dev/null || echo "unknown")
         log_success "Chromium found: $version"
         return 0

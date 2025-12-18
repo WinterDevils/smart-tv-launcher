@@ -26,9 +26,8 @@ repo/
   
   scripts/
     01_bootstrap_pi.sh          # installs system dependencies
-    02_install_apps.sh          # installs .desktop launchers
-    03_check_network.sh         # diagnostic script
-    04_check_cec.sh             # diagnostic script
+    02_check_pi_settings.sh     # verifies network and CEC
+    03_install_apps.sh          # installs .desktop launchers
   
   README.md
   .github/
@@ -68,7 +67,26 @@ Copilot should implement a bootstrap script that:
   - Any notable errors
 - The script must be safe to re-run
 
-### scripts/02_install_apps.sh
+### scripts/02_check_pi_settings.sh
+
+Copilot should implement a diagnostic script that:
+
+- Checks system configuration:
+  - Verifies Chromium is installed
+- Checks network connectivity:
+  - Tests internet connectivity (ping to common hosts)
+  - Verifies DNS resolution
+  - Shows network interface status
+- Checks HDMI CEC:
+  - Verifies `cec-client` is installed
+  - Checks `/boot/config.txt` for `hdmi_ignore_cec` setting
+  - Scans for CEC devices
+- Provides a summary at the end with:
+  - "All checks passed! Your Pi is ready."
+  - Or specific guidance on what needs attention
+- This script should be run after bootstrap to verify the Pi is ready
+
+### scripts/03_install_apps.sh
 
 Copilot should implement a script that:
 
@@ -77,37 +95,6 @@ Copilot should implement a script that:
 - Refreshes the desktop database: `update-desktop-database "$HOME/.local/share/applications"` (if available; handle missing command gracefully)
 - Prints a summary of which desktop entries were installed or updated
 - The script should be generic so future `.desktop` files added to `files/desktop/` are also installed
-
-### scripts/03_check_network.sh
-
-Copilot should implement a network diagnostics script that:
-
-- Runs and prints the output of:
-  - `ip addr`
-  - `nmcli device status`
-  - `ping -c 4 8.8.8.8`
-  - `ping -c 4 google.com`
-  - `date`
-  - `resolvectl status` (if available; otherwise note that it's missing)
-- At the end, prints a short human-readable diagnosis, for example:
-  - "Connectivity appears OK."
-  - "Likely DNS issue."
-  - "No network connectivity detected."
-  - "System time appears incorrect (may break HTTPS)."
-
-### scripts/04_check_cec.sh
-
-Copilot should implement an HDMI-CEC diagnostics script that:
-
-- Checks whether `cec-client` is installed; if not, prints a clear warning and exits
-- Runs:
-  - `cec-client -l` to list adapters
-  - `echo "scan" | cec-client -s -d 1` to scan for CEC devices
-- Prints the raw output plus a human-readable summary, such as:
-  - "No CEC adapter detected."
-  - "TV detected, but no playback device is registered."
-  - "CEC appears to be working; test your TV remote now."
-- This script is for diagnostics only; it should not try to change configuration
 
 ## Desktop Entry Requirements
 
@@ -139,12 +126,13 @@ Copilot should generate a `README.md` that includes:
   git clone <repo-url>
   cd <repo>
   chmod +x scripts/*.sh
-  ./scripts/01_bootstrap_pi.sh
-  ./scripts/02_install_apps.sh
+  sudo ./scripts/01_bootstrap_pi.sh
+  ./scripts/02_check_pi_settings.sh
+  ./scripts/03_install_apps.sh
   ```
 - A note on what is currently implemented:
   - Base packages and YouTube TV launcher
-  - Network and CEC diagnostics
+  - Pi settings verification (network + CEC diagnostics)
 - A short "Future work" section mentioning:
   - YouTube Kids launcher
   - Browser-based streaming app launcher (e.g., Cineby)

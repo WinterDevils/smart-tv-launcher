@@ -13,29 +13,8 @@
 
 set -euo pipefail
 
-# Color codes for output
-readonly RED='\033[0;31m'
-readonly GREEN='\033[0;32m'
-readonly YELLOW='\033[1;33m'
-readonly BLUE='\033[0;34m'
-readonly NC='\033[0m' # No Color
-
-# Logging functions
-log_info() {
-    echo -e "${BLUE}[INFO]${NC} $*"
-}
-
-log_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $*"
-}
-
-log_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $*"
-}
-
-log_error() {
-    echo -e "${RED}[ERROR]${NC} $*"
-}
+# Source common functions
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
 # Check if running as root
 check_root() {
@@ -43,11 +22,6 @@ check_root() {
         log_error "This script must be run as root (use sudo)"
         exit 1
     fi
-}
-
-# Check if package is installed
-is_package_installed() {
-    dpkg -l "$1" 2>/dev/null | grep -q "^ii"
 }
 
 # Update system packages

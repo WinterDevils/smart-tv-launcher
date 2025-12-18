@@ -44,12 +44,27 @@ This will:
 
 **Note**: If firmware is updated, you'll need to reboot before proceeding.
 
-### 3. Install Applications
+### 3. Verify Pi Settings
+
+This checks that your network and CEC are working:
+
+```bash
+./scripts/02_check_pi_settings.sh
+```
+
+This will:
+- Verify Chromium is installed
+- Test internet connectivity
+- Check DNS resolution
+- Scan for HDMI CEC devices
+- Provide diagnostic information
+
+### 4. Install Applications
 
 This installs the Smart TV app launchers:
 
 ```bash
-./scripts/install_apps.sh
+./scripts/03_install_apps.sh
 ```
 
 This will:
@@ -57,7 +72,7 @@ This will:
 - Configure YouTube TV launcher
 - Update the desktop database
 
-### 4. Launch Your Apps
+### 5. Launch Your Apps
 
 Find "YouTube TV" in your application menu under AudioVideo, or launch from terminal:
 
@@ -74,9 +89,8 @@ smart-tv-launcher/
 │       └── youtube-tv.desktop # YouTube TV launcher (Smart TV UI)
 ├── scripts/
 │   ├── 01_bootstrap_pi.sh     # System setup script (run as root)
-│   ├── 02_install_apps.sh     # App installation script
-│   ├── 03_check_network.sh    # Network diagnostics
-│   └── 04_check_cec.sh        # HDMI CEC testing
+│   ├── 02_check_pi_settings.sh # Verify network and CEC
+│   └── 03_install_apps.sh     # App installation script
 └── README.md                   # This file
 ```
 
@@ -89,29 +103,21 @@ smart-tv-launcher/
   - Installs required software (Chromium, CEC utils, etc.)
   - Safe to re-run
 
+### Diagnostics
+
+- **`02_check_pi_settings.sh`** - Verify Pi configuration
+  - Tests internet connectivity
+  - Checks DNS resolution  
+  - Scans for CEC devices
+  - Verifies Chromium installation
+  - Provides troubleshooting guidance
+
 ### Application Management
 
-- **`02_install_apps.sh`** - Install Smart TV apps
+- **`03_install_apps.sh`** - Install Smart TV apps
   - Installs `.desktop` launchers
   - Configures application menu entries
   - Backs up existing files before overwriting
-
-### Diagnostics & Utilities
-
-- **`03_check_network.sh`** - Network diagnostics
-  - Tests internet connectivity
-  - Checks DNS resolution
-  - Tests streaming service accessibility
-  - Reports WiFi signal strength
-
-- **`04_check_cec.sh`** - HDMI CEC testing
-  - Scans for CEC devices
-  - Tests TV control commands
-  - Provides troubleshooting information
-  - Usage:
-    - `./scripts/04_check_cec.sh scan` (default)
-    - `./scripts/04_check_cec.sh test` (test TV power)
-    - `./scripts/04_check_cec.sh interactive` (manual control)
 
 ## 📺 Available Apps
 
@@ -131,7 +137,7 @@ Full Smart TV interface for YouTube with remote control support.
 ### Adding New Apps
 
 1. Create a `.desktop` file in the `files/desktop/` directory
-2. Run `./scripts/02_install_apps.sh` to install
+2. Run `./scripts/03_install_apps.sh` to install
 3. Find your app in the application menu
 
 Example `.desktop` file:
@@ -150,29 +156,29 @@ Categories=AudioVideo;Video;
 
 Edit the `.desktop` files in `files/desktop/` directory, then re-run:
 ```bash
-./scripts/02_install_apps.sh
+./scripts/03_install_apps.sh
 ```
 
 ## 🐛 Troubleshooting
 
 ### YouTube TV won't load
-1. Check network connectivity: `./scripts/03_check_network.sh`
+1. Check network connectivity: `./scripts/02_check_pi_settings.sh`
 2. Verify Chromium is installed: `chromium --version`
 3. Test URL manually: `chromium --app="https://www.youtube.com/tv"`
 
 ### CEC (TV remote control) not working
-1. Run diagnostics: `./scripts/04_check_cec.sh`
+1. Run diagnostics: `./scripts/02_check_pi_settings.sh`
 2. Check TV settings - enable CEC (may be called Anynet+, Bravia Sync, etc.)
 3. Verify `/boot/config.txt` doesn't have `hdmi_ignore_cec=1`
 4. Try different HDMI port on TV
 
 ### Apps not appearing in menu
-1. Re-run: `./scripts/02_install_apps.sh`
+1. Re-run: `./scripts/03_install_apps.sh`
 2. Restart your desktop environment (logout and login)
 3. Check installation: `ls ~/.local/share/applications/`
 
 ### Network issues
-- Run network diagnostics: `./scripts/03_check_network.sh`
+- Run network diagnostics: `./scripts/02_check_pi_settings.sh`
 - Check WiFi signal strength
 - Verify router/modem connectivity
 - Test with Ethernet if WiFi is unstable
@@ -185,8 +191,9 @@ If you need to reset your Pi:
 2. Clone this repository
 3. Run `sudo ./scripts/01_bootstrap_pi.sh`
 4. Reboot if firmware was updated
-5. Run `./scripts/02_install_apps.sh`
-6. Done!
+5. Run `./scripts/02_check_pi_settings.sh`
+6. Run `./scripts/03_install_apps.sh`
+7. Done!
 
 ## 🎮 Usage Tips
 
