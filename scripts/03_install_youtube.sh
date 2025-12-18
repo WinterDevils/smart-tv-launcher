@@ -66,6 +66,24 @@ install_desktop_file() {
         log_success "Installed ${filename}"
         return 0
     else
+        log_error "Failed to copy ${filename}"
+        return 1
+    fi
+}
+
+# Install YouTube launchers
+install_youtube_launchers() {
+    log_info "Looking for YouTube launchers in ${FILES_DIR}..."
+    
+    # Debug: list all files in the directory
+    log_info "Files in ${FILES_DIR}:"
+    ls -la "${FILES_DIR}" || log_warning "Could not list directory"
+    echo ""
+    
+    local installed_count=0
+    local youtube_files=("youtube-tv.desktop" "youtube-kids.desktop")
+    local all_found=true
+    
     for filename in "${youtube_files[@]}"; do
         log_info "==== Processing ${filename} ===="
         local source_file="${FILES_DIR}/${filename}"
@@ -96,24 +114,6 @@ install_desktop_file() {
         fi
         
         log_info "==== Finished ${filename} ===="
-        echo ""  # Add blank line between iterations for clarity
-    done    set +e  # Temporarily disable exit on error
-            install_desktop_file "$source_file"
-            local install_result=$?
-            set -e  # Re-enable exit on error
-            
-            if [[ $install_result -eq 0 ]]; then
-                ((installed_count++))
-                log_info "Successfully processed ${filename}"
-            else
-                log_error "Failed to install ${filename} (exit code: ${install_result})"
-                all_found=false
-            fi
-        else
-            log_error "${filename} not found at ${source_file}"
-            all_found=false
-        fi
-        
         echo ""  # Add blank line between iterations for clarity
     done
     

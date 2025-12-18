@@ -16,6 +16,68 @@ source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 # NETWORK CHECKS
 # ============================================================================
 
+# Check audio output
+check_audio() {
+    log_info "Checking audio configuration..."
+    
+    # Check if audio device exists
+    if ! command_exists aplay; then
+        log_error "aplay command not found"
+        return 1
+    fi
+    
+    # List audio devices
+    log_info "Available audio devices:"
+    aplay -l 2>/dev/null || log_warning "Could not list audio devices"
+    echo ""
+    
+    # Check current audio output
+    if command_exists amixer; then
+        log_info "Checking audio output routing..."
+        local output=$(amixer cget numid=3 2>/dev/null | grep ": values=" | cut -d= -f2)
+        case "$output" in
+            0) log_info "Audio output: Auto" ;;
+            1) log_info "Audio output: Analog (3.5mm jack)" ;;
+            2) log_info "Audio output: HDMI" ;;
+            *) log_warning "Audio output: Unknown ($output)" ;;
+        esac
+        
+        # Check volume level
+        local volume=$(amixer get PCM 2>/dev/null | grep -oP '\[\d+%\]' | head -1 | tr -d '[]%')
+        if [[ -n "$volume" ]]; then
+            if [[ $volume -eq 0 ]]; then
+                log_error "Volume is muted (0%)"
+            elif [[ $volume -lt 20 ]]; then
+                log_warning "Volume is very low ($volume%)"
+            else
+                log_success "Volume level: $volume%"
+            fi
+        fi
+    else
+        log_warning "amixer not found, cannot check volume"
+    fi
+    
+    echo ""
+    
+    # Test audio playback
+    log_info "Testing audio playback..."
+    if [[ -f /usr/share/sounds/alsa/Front_Center.wav ]]; then
+        log_info "Playing test sound (you should hear a voice saying 'Front Center')..."
+        if aplay /usr/share/sounds/alsa/Front_Center.wav 2>/dev/null; then
+            log_success "Audio playback test completed"
+            log_info "Did you hear the test sound?"
+            log_info "  If NO: Check HDMI audio output or run 'raspi-config' > System Options > Audio"
+        else
+            log_error "Audio playback test failed"
+            log_info "Try: raspi-config > System Options > Audio > Select HDMI"
+        fi
+    else
+        log_warning "Test sound file not found, skipping playback test"
+    fi
+    
+    return 0
+}
+
 # Check basic connectivity
 check_internet() {
     log_info "Checking internet connectivity..."
@@ -142,13 +204,19 @@ scan_cec_devices() {
     else
         log_warning "No CEC devices found (may be normal if TV doesn't support CEC)"
     fi
-    
+    # System checks
+    log_info "=== System Configuration ==="
     echo ""
-}
-
-# ============================================================================
-# SYSTEM CHECKS
-# ============================================================================
+    check_chromium || ((errors++))
+    echo ""
+    
+    # Audio checks
+    log_info "=== Audio Configuration ==="
+    echo ""
+    check_audio || ((errors++))
+    echo ""
+    
+    # Network checks==========================================================
 
 # Check Chromium installation
 check_chromium() {
@@ -185,10 +253,11 @@ print_summary() {
     echo ""
     
     if [[ $errors -eq 0 ]]; then
-        log_success "All checks passed! Your Pi is ready."
-        echo ""
-        log_info "Next step: Run ./scripts/03_install_apps.sh"
-    else
+        log_info "Common issues:"
+        log_info "  - No internet: Check WiFi/Ethernet connection"
+        log_info "  - No sound: Use raspi-config to set audio output to HDMI"
+        log_info "  - CEC not working: Verify TV settings and HDMI cable"
+        log_info "  - Missing packages: Re-run 01_bootstrap_pi.sh"
         log_warning "$errors check(s) failed or need attention"
         echo ""
         log_info "Common issues:"
