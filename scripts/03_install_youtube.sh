@@ -40,17 +40,26 @@ install_desktop_file() {
     local target_file="${local_apps_dir}/${filename}"
     
     log_info "Installing ${filename}..."
+    log_info "  Source: ${source_file}"
+    log_info "  Target: ${target_file}"
     
     # Copy the file (overwrite if exists)
-    cp "$source_file" "$target_file"
-    chmod 644 "$target_file"
-    
-    log_success "Installed ${filename}"
+    if cp "$source_file" "$target_file"; then
+        chmod 644 "$target_file"
+        log_success "Installed ${filename}"
+    else
+        log_error "Failed to copy ${filename}"
+        return 1
+    fi
 }
 
 # Install YouTube launchers
 install_youtube_launchers() {
     log_info "Looking for YouTube launchers in ${FILES_DIR}..."
+    
+    # Debug: list all files in the directory
+    log_info "Files in ${FILES_DIR}:"
+    ls -la "${FILES_DIR}" || log_warning "Could not list directory"
     
     local installed_count=0
     local youtube_files=("youtube-tv.desktop" "youtube-kids.desktop")
@@ -58,11 +67,18 @@ install_youtube_launchers() {
     
     for filename in "${youtube_files[@]}"; do
         local source_file="${FILES_DIR}/${filename}"
+        log_info "Checking for ${filename}..."
+        
         if [[ -f "$source_file" ]]; then
-            install_desktop_file "$source_file"
-            ((installed_count++))
+            log_success "Found ${filename}"
+            if install_desktop_file "$source_file"; then
+                ((installed_count++))
+            else
+                log_error "Failed to install ${filename}"
+                all_found=false
+            fi
         else
-            log_error "${filename} not found in ${FILES_DIR}"
+            log_error "${filename} not found at ${source_file}"
             all_found=false
         fi
     done
