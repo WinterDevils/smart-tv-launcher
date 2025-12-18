@@ -3,7 +3,7 @@ Version=1.0
 Type=Application
 Name=YouTube Kids
 Comment=Launch YouTube Kids with Smart TV interface
-Exec=chromium --app="https://www.youtubekids.com" --start-fullscreen --user-agent="Mozilla/5.0 (SMART-TV; Linux; Tizen 7.0) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/2.1 TV Safari/537.36" --noerrdialogs --disable-infobars --no-first-run --check-for-update-interval=31536000
+Exec=chromium --app="https://www.youtubekids.com" --start-fullscreen --window-size=1920,1080 --window-position=0,0 --user-agent="Mozilla/5.0 (SMART-TV; Linux; Tizen 7.0) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/2.1 TV Safari/537.36" --noerrdialogs --disable-infobars --no-first-run --check-for-update-interval=31536000
 Icon=chromium-browser
 Terminal=false
 Categories=AudioVideo;Video;
