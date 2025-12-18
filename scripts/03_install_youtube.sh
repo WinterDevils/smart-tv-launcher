@@ -60,6 +60,7 @@ install_youtube_launchers() {
     # Debug: list all files in the directory
     log_info "Files in ${FILES_DIR}:"
     ls -la "${FILES_DIR}" || log_warning "Could not list directory"
+    echo ""
     
     local installed_count=0
     local youtube_files=("youtube-tv.desktop" "youtube-kids.desktop")
@@ -71,17 +72,29 @@ install_youtube_launchers() {
         
         if [[ -f "$source_file" ]]; then
             log_success "Found ${filename}"
-            if install_desktop_file "$source_file"; then
+            
+            # Install with explicit error handling
+            set +e  # Temporarily disable exit on error
+            install_desktop_file "$source_file"
+            local install_result=$?
+            set -e  # Re-enable exit on error
+            
+            if [[ $install_result -eq 0 ]]; then
                 ((installed_count++))
+                log_info "Successfully processed ${filename}"
             else
-                log_error "Failed to install ${filename}"
+                log_error "Failed to install ${filename} (exit code: ${install_result})"
                 all_found=false
             fi
         else
             log_error "${filename} not found at ${source_file}"
             all_found=false
         fi
+        
+        echo ""  # Add blank line between iterations for clarity
     done
+    
+    log_info "Total files processed: ${installed_count}"
     
     if [[ "$all_found" == false ]]; then
         log_error "Missing required YouTube launcher files"
