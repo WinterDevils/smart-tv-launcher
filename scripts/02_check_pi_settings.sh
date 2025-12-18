@@ -13,7 +13,7 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
 # ============================================================================
-# NETWORK CHECKS
+# AUDIO CHECKS
 # ============================================================================
 
 # Check audio output
@@ -35,12 +35,37 @@ check_audio() {
     if command_exists amixer; then
         log_info "Checking audio output routing..."
         local output=$(amixer cget numid=3 2>/dev/null | grep ": values=" | cut -d= -f2)
+        
+        local needs_change=false
         case "$output" in
-            0) log_info "Audio output: Auto" ;;
-            1) log_info "Audio output: Analog (3.5mm jack)" ;;
-            2) log_info "Audio output: HDMI" ;;
-            *) log_warning "Audio output: Unknown ($output)" ;;
+            0) 
+                log_warning "Audio output: Auto (may not use HDMI)"
+                needs_change=true
+                ;;
+            1) 
+                log_warning "Audio output: Analog (3.5mm jack) - should be HDMI for TV"
+                needs_change=true
+                ;;
+            2) 
+                log_success "Audio output: HDMI"
+                ;;
+            *) 
+                log_warning "Audio output: Unknown ($output)"
+                needs_change=true
+                ;;
         esac
+        
+        # Auto-switch to HDMI if not already set
+        if [[ "$needs_change" == true ]]; then
+            log_info "Switching audio output to HDMI..."
+            if amixer cset numid=3 2 &>/dev/null; then
+                log_success "Audio output switched to HDMI"
+            else
+                log_error "Failed to switch audio output to HDMI"
+                log_info "Try manually: raspi-config > System Options > Audio > Select HDMI"
+                return 1
+            fi
+        fi
         
         # Check volume level
         local volume=$(amixer get PCM 2>/dev/null | grep -oP '\[\d+%\]' | head -1 | tr -d '[]%')
@@ -65,8 +90,7 @@ check_audio() {
         log_info "Playing test sound (you should hear a voice saying 'Front Center')..."
         if aplay /usr/share/sounds/alsa/Front_Center.wav 2>/dev/null; then
             log_success "Audio playback test completed"
-            log_info "Did you hear the test sound?"
-            log_info "  If NO: Check HDMI audio output or run 'raspi-config' > System Options > Audio"
+            log_info "Did you hear the test sound? If YES, audio is working correctly."
         else
             log_error "Audio playback test failed"
             log_info "Try: raspi-config > System Options > Audio > Select HDMI"
@@ -77,6 +101,10 @@ check_audio() {
     
     return 0
 }
+
+# ============================================================================
+# NETWORK CHECKS
+# ============================================================================
 
 # Check basic connectivity
 check_internet() {
@@ -204,19 +232,13 @@ scan_cec_devices() {
     else
         log_warning "No CEC devices found (may be normal if TV doesn't support CEC)"
     fi
-    # System checks
-    log_info "=== System Configuration ==="
-    echo ""
-    check_chromium || ((errors++))
-    echo ""
     
-    # Audio checks
-    log_info "=== Audio Configuration ==="
     echo ""
-    check_audio || ((errors++))
-    echo ""
-    
-    # Network checks==========================================================
+}
+
+# ============================================================================
+# SYSTEM CHECKS
+# ============================================================================
 
 # Check Chromium installation
 check_chromium() {
@@ -253,15 +275,15 @@ print_summary() {
     echo ""
     
     if [[ $errors -eq 0 ]]; then
-        log_info "Common issues:"
-        log_info "  - No internet: Check WiFi/Ethernet connection"
-        log_info "  - No sound: Use raspi-config to set audio output to HDMI"
-        log_info "  - CEC not working: Verify TV settings and HDMI cable"
-        log_info "  - Missing packages: Re-run 01_bootstrap_pi.sh"
+        log_success "All checks passed! Your Pi is ready."
+        echo ""
+        log_info "Next step: Run ./scripts/03_install_apps.sh"
+    else
         log_warning "$errors check(s) failed or need attention"
         echo ""
         log_info "Common issues:"
         log_info "  - No internet: Check WiFi/Ethernet connection"
+        log_info "  - No sound: Use raspi-config to set audio output to HDMI"
         log_info "  - CEC not working: Verify TV settings and HDMI cable"
         log_info "  - Missing packages: Re-run 01_bootstrap_pi.sh"
     fi
@@ -277,6 +299,12 @@ main() {
     log_info "=== System Configuration ==="
     echo ""
     check_chromium || ((errors++))
+    echo ""
+    
+    # Audio checks
+    log_info "=== Audio Configuration ==="
+    echo ""
+    check_audio || ((errors++))
     echo ""
     
     # Network checks
