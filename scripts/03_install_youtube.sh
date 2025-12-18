@@ -43,38 +43,61 @@ install_desktop_file() {
     log_info "  Source: ${source_file}"
     log_info "  Target: ${target_file}"
     
-    # Copy the file (overwrite if exists)
-    if cp "$source_file" "$target_file"; then
-        chmod 644 "$target_file"
-        log_success "Installed ${filename}"
-    else
-        log_error "Failed to copy ${filename}"
+    # Verify source exists
+    if [[ ! -f "$source_file" ]]; then
+        log_error "  Source file does not exist!"
         return 1
     fi
-}
-
-# Install YouTube launchers
-install_youtube_launchers() {
-    log_info "Looking for YouTube launchers in ${FILES_DIR}..."
+    log_info "  Source file verified"
     
-    # Debug: list all files in the directory
-    log_info "Files in ${FILES_DIR}:"
-    ls -la "${FILES_DIR}" || log_warning "Could not list directory"
-    echo ""
+    # Verify target directory exists
+    if [[ ! -d "$local_apps_dir" ]]; then
+        log_error "  Target directory does not exist!"
+        return 1
+    fi
+    log_info "  Target directory verified"
     
-    local installed_count=0
-    local youtube_files=("youtube-tv.desktop" "youtube-kids.desktop")
-    local all_found=true
-    
+    # Copy the file (overwrite if exists)
+    log_info "  Attempting copy..."
+    if cp "$source_file" "$target_file"; then
+        log_info "  Copy successful"
+        log_info "  Setting permissions..."
+        chmod 644 "$target_file"
+        log_success "Installed ${filename}"
+        return 0
+    else
     for filename in "${youtube_files[@]}"; do
+        log_info "==== Processing ${filename} ===="
         local source_file="${FILES_DIR}/${filename}"
         log_info "Checking for ${filename}..."
+        log_info "Full path: ${source_file}"
         
         if [[ -f "$source_file" ]]; then
             log_success "Found ${filename}"
             
             # Install with explicit error handling
+            log_info "About to call install_desktop_file..."
             set +e  # Temporarily disable exit on error
+            install_desktop_file "$source_file"
+            local install_result=$?
+            set -e  # Re-enable exit on error
+            log_info "install_desktop_file returned: ${install_result}"
+            
+            if [[ $install_result -eq 0 ]]; then
+                ((installed_count++))
+                log_success "Successfully processed ${filename} (count: ${installed_count})"
+            else
+                log_error "Failed to install ${filename} (exit code: ${install_result})"
+                all_found=false
+            fi
+        else
+            log_error "${filename} not found at ${source_file}"
+            all_found=false
+        fi
+        
+        log_info "==== Finished ${filename} ===="
+        echo ""  # Add blank line between iterations for clarity
+    done    set +e  # Temporarily disable exit on error
             install_desktop_file "$source_file"
             local install_result=$?
             set -e  # Re-enable exit on error
