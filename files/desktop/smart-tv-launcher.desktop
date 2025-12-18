@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Smart TV Launcher
+Comment=Smart TV Home Screen
+Exec=chromium --app="file://%h/projects/pi-smart-tv-launchers/desktop/files/launcher/index.html" --start-fullscreen --window-size=1920,1080 --window-position=0,0 --noerrdialogs --disable-infobars --no-first-run --check-for-update-interval=31536000
+Icon=web-browser
+Terminal=false
+Categories=Utility;
+StartupNotify=true
+StartupWMClass=Smart TV Launcher

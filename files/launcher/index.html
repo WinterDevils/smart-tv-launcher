@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart TV Launcher</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">Smart TV</h1>
+            <div class="time" id="clock"></div>
+        </header>
+
+        <main class="grid-container">
+            <button class="tile" onclick="launchApp('youtube-tv')" tabindex="1">
+                <div class="tile-icon">📺</div>
+                <div class="tile-name">YouTube TV</div>
+            </button>
+
+            <button class="tile" onclick="launchApp('youtube-kids')" tabindex="2">
+                <div class="tile-icon">👶</div>
+                <div class="tile-name">YouTube Kids</div>
+            </button>
+
+            <button class="tile" onclick="launchApp('cineby')" tabindex="3">
+                <div class="tile-icon">🎬</div>
+                <div class="tile-name">Movies</div>
+            </button>
+
+            <button class="tile" onclick="launchApp('tv-browser')" tabindex="4">
+                <div class="tile-icon">🌐</div>
+                <div class="tile-name">Browser</div>
+            </button>
+
+            <button class="tile" onclick="launchApp('settings')" tabindex="5">
+                <div class="tile-icon">⚙️</div>
+                <div class="tile-name">Settings</div>
+            </button>
+
+            <button class="tile tile-power" onclick="powerOff()" tabindex="6">
+                <div class="tile-icon">⏻</div>
+                <div class="tile-name">Power Off</div>
+            </button>
+        </main>
+
+        <footer class="footer">
+            <p>Use arrow keys to navigate • Press Enter to select</p>
+        </footer>
+    </div>
+
+    <script src="launcher.js"></script>
+</body>
+</html>
