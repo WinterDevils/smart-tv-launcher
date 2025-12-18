@@ -59,17 +59,18 @@ This will:
 - Scan for HDMI CEC devices
 - Provide diagnostic information
 
-### 4. Install Applications
+### 4. Install YouTube Launchers
 
-This installs the Smart TV app launchers:
+This installs YouTube TV and YouTube Kids launchers:
 
 ```bash
-./scripts/03_install_apps.sh
+./scripts/03_install_youtube.sh
 ```
 
 This will:
-- Copy `.desktop` files to your applications menu
-- Configure YouTube TV launcher
+- Verify Chromium is installed
+- Install YouTube TV launcher
+- Install YouTube Kids launcher (if available)
 - Update the desktop database
 
 ### 5. Launch Your Apps
@@ -86,12 +87,13 @@ gtk-launch youtube-tv.desktop
 smart-tv-launcher/
 ├── files/
 │   └── desktop/
-│       └── youtube-tv.desktop # YouTube TV launcher (Smart TV UI)
+│       ├── youtube-tv.desktop  # YouTube TV launcher
+│       └── youtube-kids.desktop # YouTube Kids launcher (optional)
 ├── scripts/
-│   ├── 01_bootstrap_pi.sh     # System setup script (run as root)
+│   ├── 01_bootstrap_pi.sh      # System setup script (run as root)
 │   ├── 02_check_pi_settings.sh # Verify network and CEC
-│   └── 03_install_apps.sh     # App installation script
-└── README.md                   # This file
+│   └── 03_install_youtube.sh   # Install YouTube launchers
+└── README.md                    # This file
 ```
 
 ## 🔧 Available Scripts
@@ -114,10 +116,10 @@ smart-tv-launcher/
 
 ### Application Management
 
-- **`03_install_apps.sh`** - Install Smart TV apps
-  - Installs `.desktop` launchers
+- **`03_install_youtube.sh`** - Install YouTube launchers
+  - Installs YouTube TV and YouTube Kids `.desktop` files
   - Configures application menu entries
-  - Backs up existing files before overwriting
+  - Overwrites existing files (no backup)
 
 ## 📺 Available Apps
 
@@ -137,7 +139,7 @@ Full Smart TV interface for YouTube with remote control support.
 ### Adding New Apps
 
 1. Create a `.desktop` file in the `files/desktop/` directory
-2. Run `./scripts/03_install_apps.sh` to install
+2. Create a new install script or modify existing one
 3. Find your app in the application menu
 
 Example `.desktop` file:
@@ -156,7 +158,7 @@ Categories=AudioVideo;Video;
 
 Edit the `.desktop` files in `files/desktop/` directory, then re-run:
 ```bash
-./scripts/03_install_apps.sh
+./scripts/03_install_youtube.sh
 ```
 
 ## 🐛 Troubleshooting
@@ -173,7 +175,7 @@ Edit the `.desktop` files in `files/desktop/` directory, then re-run:
 4. Try different HDMI port on TV
 
 ### Apps not appearing in menu
-1. Re-run: `./scripts/03_install_apps.sh`
+1. Re-run: `./scripts/03_install_youtube.sh`
 2. Restart your desktop environment (logout and login)
 3. Check installation: `ls ~/.local/share/applications/`
 
@@ -192,7 +194,7 @@ If you need to reset your Pi:
 3. Run `sudo ./scripts/01_bootstrap_pi.sh`
 4. Reboot if firmware was updated
 5. Run `./scripts/02_check_pi_settings.sh`
-6. Run `./scripts/03_install_apps.sh`
+6. Run `./scripts/03_install_youtube.sh`
 7. Done!
 
 ## 🎮 Usage Tips

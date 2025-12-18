@@ -4,6 +4,50 @@
 
 This repository automates the setup of a Raspberry Pi 4 into a reusable "Smart TV box." Any fresh Raspberry Pi OS (Bookworm) installation should be configurable by cloning this repo and running a small number of scripts.
 
+## Project Context
+
+This repository builds a reusable and fully automated Smart TV system for a Raspberry Pi 4.
+The goal is to convert any fresh Raspberry Pi OS installation into a Smart TV-like device with:
+
+- YouTube TV (fullscreen TV interface)
+- YouTube Kids (fullscreen app-style launcher)
+- Browser-based streaming “apps” such as Cineby (fullscreen, no URL bar)
+- Eventually a Google TV–style home launcher UI
+- Optional HDMI-CEC remote support
+- Clean fallback support via USB remote or air mouse
+
+## User Experience Goals
+The final device should behave like a modern smart TV:
+
+- Boots directly into a launcher (no desktop visible)
+- Shows large, simple app tiles:
+  - YouTube
+  - YouTube Kids
+  - Movies (Cineby)
+  - Browser
+  - Settings / Shutdown
+- Each app opens fullscreen, without browser chrome
+- The Pi should be easy to rebuild:
+  - Destroy the SD card? Reboot?
+  - Replace Pi?
+  - → Clone repo, run 1–3 scripts, done.
+
+## Technical Philosophy
+
+- Everything must be idempotent: safe to re-run
+- No hardcoded /home/pi paths
+- Use .desktop files to create Smart TV–like “apps”
+- Force Chromium into Smart TV UI modes using Smart TV user-agents
+- Use simple Bash scripts that set up the OS in a predictable way
+- Designed for non-technical family use (wife/kids)
+- Future Features Copilot Should Anticipate
+- More .desktop apps (YouTube Kids, Cineby, etc.)
+- A custom Smart TV launcher (HTML/Python/GTK/Electron)
+- Auto-starting the launcher on boot
+- Family-safe mode (lockdown)
+- Launcher theming matching Google TV style
+- Copilot should design files, scripts, and structure so these future pieces can be added cleanly.
+
 ### Assumptions
 
 - **Target device**: Raspberry Pi 4 (4GB)
@@ -21,13 +65,13 @@ The repository should follow this structure:
 repo/
   files/
     desktop/
-      youtube-tv.desktop        # .desktop entries for Smart TV apps
-      # (future .desktop files will be added here)
+      youtube-tv.desktop        # YouTube TV launcher
+      youtube-kids.desktop      # YouTube Kids launcher (optional)
   
   scripts/
     01_bootstrap_pi.sh          # installs system dependencies
     02_check_pi_settings.sh     # verifies network and CEC
-    03_install_apps.sh          # installs .desktop launchers
+    03_install_youtube.sh       # installs YouTube launchers
   
   README.md
   .github/
@@ -86,15 +130,18 @@ Copilot should implement a diagnostic script that:
   - Or specific guidance on what needs attention
 - This script should be run after bootstrap to verify the Pi is ready
 
-### scripts/03_install_apps.sh
+### scripts/03_install_youtube.sh
 
 Copilot should implement a script that:
 
-- Copies all `.desktop` files from `files/desktop/` into: `$HOME/.local/share/applications/`
-- Makes them executable with `chmod +x`
+- Verifies Chromium is installed (exits if not)
+- Creates `~/.local/share/applications/` and `~/Desktop/` directories
+- Finds `youtube-tv.desktop` and `youtube-kids.desktop` specifically in `files/desktop/`
+- Copies them to `$HOME/.local/share/applications/` (overwrites without backup)
+- Sets permissions to 644
 - Refreshes the desktop database: `update-desktop-database "$HOME/.local/share/applications"` (if available; handle missing command gracefully)
-- Prints a summary of which desktop entries were installed or updated
-- The script should be generic so future `.desktop` files added to `files/desktop/` are also installed
+- Prints a summary with launch instructions
+- Script is idempotent and safe to re-run
 
 ## Desktop Entry Requirements
 
@@ -128,7 +175,7 @@ Copilot should generate a `README.md` that includes:
   chmod +x scripts/*.sh
   sudo ./scripts/01_bootstrap_pi.sh
   ./scripts/02_check_pi_settings.sh
-  ./scripts/03_install_apps.sh
+  ./scripts/03_install_youtube.sh
   ```
 - A note on what is currently implemented:
   - Base packages and YouTube TV launcher
