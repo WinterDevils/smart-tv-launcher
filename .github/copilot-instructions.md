@@ -147,6 +147,8 @@ Copilot should generate a `README.md` that includes:
 - Preserve and respect the existing repository structure
 - Keep scripts idempotent and safe to re-run
 - Favor clarity and robustness over cleverness
+- Be concise in responses - focus on delivering results over lengthy explanations
+- Act as a programmer: explain less, deliver more
 
 ### Copilot should NOT:
 
