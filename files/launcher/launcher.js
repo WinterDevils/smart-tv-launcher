@@ -34,13 +34,27 @@ function launchApp(appId) {
         }
     });
     
-    // TODO: Wire up actual app launching via shell scripts
-    // This will be implemented later to call:
-    // - gtk-launch youtube-tv.desktop
-    // - gtk-launch youtube-kids.desktop
-    // - etc.
-    
-    alert(`Launching: ${appId}\n\nThis will be wired up to launch .desktop files.`);
+    // Navigate to appropriate URL
+    switch (appId) {
+        case 'youtube-tv':
+            window.location.href = 'https://www.youtube.com/tv';
+            break;
+        case 'youtube-kids':
+            window.location.href = 'https://www.youtubekids.com';
+            break;
+        case 'cineby':
+            window.location.href = 'https://example.com'; // placeholder for Cineby
+            break;
+        case 'tv-browser':
+            window.location.href = 'https://duckduckgo.com';
+            break;
+        case 'settings':
+            // Reload launcher
+            window.location.href = 'file://__LAUNCHER_INDEX_HTML__';
+            break;
+        default:
+            console.log('Unknown appId:', appId);
+    }
 }
 
 /**
@@ -53,9 +67,8 @@ function powerOff() {
     
     if (confirmed) {
         console.log('Power off confirmed');
-        // TODO: Wire up to actual shutdown command
-        // Will call: sudo shutdown -h now
-        alert('Power off functionality will be implemented.\n\nWill execute: sudo shutdown -h now');
+        // Close the window (or navigate away)
+        window.close();
     }
 }
 
