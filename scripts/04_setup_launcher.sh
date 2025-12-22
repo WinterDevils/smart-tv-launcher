@@ -129,14 +129,43 @@ update_launcher_paths() {
     fi
     
     # Replace placeholder in .desktop file
+    # Use @ as delimiter to avoid issues with forward slashes in paths
     log_info "Replacing __LAUNCHER_INDEX_HTML__ in smart-tv-launcher.desktop..."
-    sed -i "s|__LAUNCHER_INDEX_HTML__|${LAUNCHER_INDEX}|g" "$launcher_desktop"
+    log_info "  Path: ${LAUNCHER_INDEX}"
+    
+    # Use @ as delimiter since paths contain /
+    sed -i "s@__LAUNCHER_INDEX_HTML__@${LAUNCHER_INDEX}@g" "$launcher_desktop"
+    
+    # Verify replacement succeeded
+    if grep -q "__LAUNCHER_INDEX_HTML__" "$launcher_desktop"; then
+        log_error "Failed to replace placeholder in smart-tv-launcher.desktop"
+        return 1
+    fi
     log_success "Updated: smart-tv-launcher.desktop"
     
-    # Replace placeholder in launcher.js
-    log_info "Replacing __LAUNCHER_INDEX_HTML__ in launcher.js..."
-    sed -i "s|__LAUNCHER_INDEX_HTML__|${LAUNCHER_INDEX}|g" "${LAUNCHER_JS}"
-    log_success "Updated: launcher.js"
+    # Show the actual Exec line for verification
+    log_info "Exec line:"
+    grep "^Exec=" "$launcher_desktop" | sed 's/^/  /'
+    
+    # Replace placeholder in a COPY of launcher.js (not the source)
+    log_info "Copying launcher files to ${HOME}/.local/share/smart-tv-launcher/..."
+    local launcher_data_dir="${HOME}/.local/share/smart-tv-launcher"
+    mkdir -p "$launcher_data_dir"
+    
+    # Copy all launcher files
+    cp "${REPO_ROOT}/files/launcher/"* "$launcher_data_dir/"
+    
+    # Now replace placeholder in the copied launcher.js
+    local copied_launcher_js="${launcher_data_dir}/launcher.js"
+    log_info "Replacing __LAUNCHER_INDEX_HTML__ in copied launcher.js..."
+    sed -i "s@__LAUNCHER_INDEX_HTML__@${LAUNCHER_INDEX}@g" "$copied_launcher_js"
+    
+    # Verify replacement succeeded
+    if grep -q "__LAUNCHER_INDEX_HTML__" "$copied_launcher_js"; then
+        log_error "Failed to replace placeholder in launcher.js"
+        return 1
+    fi
+    log_success "Updated: launcher.js (copy)"
     
     # Make desktop file executable
     chmod +x "$launcher_desktop"
@@ -153,15 +182,26 @@ enable_autostart() {
     local launcher_desktop="${LOCAL_APPS}/smart-tv-launcher.desktop"
     local autostart_file="${AUTOSTART_DIR}/smart-tv-launcher.desktop"
     
-    # Copy to autostart (or create symlink)
+    # Copy to autostart
     cp "$launcher_desktop" "$autostart_file"
     chmod +x "$autostart_file"
     
     log_success "Autostart enabled: ${autostart_file}"
+    
+    # Verify autostart file is valid
+    log_info "Verifying autostart configuration..."
+    if grep -q "^Exec=" "$autostart_file"; then
+        log_success "Autostart Exec line present"
+    else
+        log_error "Autostart file is missing Exec line"
+        return 1
+    fi
+    
     echo ""
     return 0
 }
 
+# Update desktop database
 # Update desktop database
 update_desktop_database() {
     log_info "Updating desktop database..."
@@ -185,15 +225,20 @@ print_summary() {
     echo ""
     log_info "Launcher configuration:"
     log_info "  - HTML file: ${LAUNCHER_INDEX}"
+    log_info "  - Launcher data: ${HOME}/.local/share/smart-tv-launcher/"
     log_info "  - Desktop file: ${LOCAL_APPS}/smart-tv-launcher.desktop"
     log_info "  - Autostart: ${AUTOSTART_DIR}/smart-tv-launcher.desktop"
     echo ""
     log_info "The Smart TV Launcher will start automatically on login."
-    log_info "To launch manually: gtk-launch smart-tv-launcher.desktop"
+    log_info "To test manually, run:"
+    log_info "  gtk-launch smart-tv-launcher.desktop"
+    echo ""
+    log_info "To verify autostart is enabled:"
+    log_info "  ls -la ${AUTOSTART_DIR}/smart-tv-launcher.desktop"
     echo ""
     log_info "Next steps:"
     log_info "  - Log out and log back in to test autostart"
-    log_info "  - Or launch manually from application menu"
+    log_info "  - Check ~/.xsession-errors if launcher doesn't start"
     echo ""
 }
 

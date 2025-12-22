@@ -8,4 +8,5 @@ Icon=web-browser
 Terminal=false
 Categories=Utility;
 StartupNotify=true
+X-GNOME-Autostart-enabled=true
 StartupWMClass=Smart TV Launcher
