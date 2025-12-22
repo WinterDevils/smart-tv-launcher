@@ -55,6 +55,7 @@ install_packages() {
         "wget"
         "unclutter"  # Hide mouse cursor for TV experience
         "xdotool"    # Useful for automation
+        "glib2.0-bin" # Provides gtk-launch for .desktop file testing
     )
 
     log_info "Installing essential packages..."
