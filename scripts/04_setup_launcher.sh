@@ -231,7 +231,7 @@ print_summary() {
     echo ""
     log_info "The Smart TV Launcher will start automatically on login."
     log_info "To test manually, run:"
-    log_info "  gtk-launch smart-tv-launcher.desktop"
+    log_info "  dex ~/.local/share/applications/smart-tv-launcher.desktop"
     echo ""
     log_info "To verify autostart is enabled:"
     log_info "  ls -la ${AUTOSTART_DIR}/smart-tv-launcher.desktop"
