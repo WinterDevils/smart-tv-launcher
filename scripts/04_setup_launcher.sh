@@ -103,7 +103,7 @@ copy_desktop_files() {
             chmod 644 "$target"
             
             log_success "Copied: ${filename}"
-            ((copied_count++))
+            copied_count=$((copied_count + 1))
         fi
     done
     
